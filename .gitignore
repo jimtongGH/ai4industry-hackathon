@@ -1,0 +1,27 @@
+# Build / IDE / logs
+log/
+.gradle/
+.vscode/
+build/
+bin/
+
+# OS junk
+.DS_Store
+
+# Secrets and local env
+.env
+*.env.local
+
+# Python (Part IV)
+venv/
+__pycache__/
+*.pyc
+
+# Node-RED (Part I) dependencies
+node_modules/
+
+# Local assistant config
+.claude/
+
+# Nested/separate upstream tool (has its own git repo)
+ai4industry-gui/

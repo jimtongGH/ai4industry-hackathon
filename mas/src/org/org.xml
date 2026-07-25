@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?xml-stylesheet href="http://moise.sourceforge.net/xml/os.xsl" type="text/xsl" ?>
+
+<!--
+  Moise organisational specification for the IT'm Factory production line.
+
+  It regulates how the workshop-controlling agents cooperate to realise the
+  global process: supplying raw material, conveying cups, filling them,
+  potting (moving) them with the robot arm and finally packaging them.
+
+  Structure : one production_line group with one role per production stage.
+  Function  : one "produce_batch" scheme sequencing the stage goals.
+  Norms     : each stage role is obliged to commit to its stage mission.
+
+  Instantiated from mas.jcm (organisation itm_factory_org : org.xml { ... }).
+  See design-analysis.md for the design rationale.
+-->
+<organisational-specification
+    id="itm_factory_org"
+    os-version="0.8"
+
+    xmlns='http://moise.sourceforge.net/os'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xsi:schemaLocation='http://moise.sourceforge.net/os
+                        http://moise.sourceforge.net/xml/os.xsd' >
+
+<structural-specification>
+
+    <role-definitions>
+        <role id="supplier" />   <!-- cup / dairy providers          -->
+        <role id="conveyor" />   <!-- VL10 storage rack / conveying   -->
+        <role id="filler" />     <!-- DX10 filling workshop           -->
+        <role id="potter" />     <!-- Bosch APAS robot arm / potting  -->
+        <role id="packager" />   <!-- XY10 packaging workshop         -->
+    </role-definitions>
+
+    <group-specification id="production_line">
+        <roles>
+            <role id="supplier" min="1" max="2"/>   <!-- cup + dairy providers -->
+            <role id="conveyor" min="1" max="1"/>
+            <role id="filler"   min="1" max="1"/>
+            <role id="potter"   min="1" max="1"/>
+            <role id="packager" min="1" max="1"/>
+        </roles>
+
+        <!-- who may talk to / request from whom -->
+        <links>
+            <!-- each stage can request material from a supplier -->
+            <link from="conveyor" to="supplier" type="communication" scope="intra-group" bi-dir="true"/>
+            <link from="filler"   to="supplier" type="communication" scope="intra-group" bi-dir="true"/>
+            <link from="packager" to="supplier" type="communication" scope="intra-group" bi-dir="true"/>
+            <!-- adjacent stages coordinate the flow of items along the line -->
+            <link from="conveyor" to="filler"   type="communication" scope="intra-group" bi-dir="true"/>
+            <link from="filler"   to="potter"   type="communication" scope="intra-group" bi-dir="true"/>
+            <link from="potter"   to="packager" type="communication" scope="intra-group" bi-dir="true"/>
+        </links>
+    </group-specification>
+</structural-specification>
+
+<functional-specification>
+    <!-- goal of producing one batch of pots, decomposed by stage -->
+    <scheme id="produce_batch">
+        <goal id="produce_pots">
+            <plan operator="sequence">
+                <goal id="supply_material" ds="providers deliver cups and dairy product"/>
+                <goal id="convey_cups"     ds="storage rack feeds cups onto the conveyor"/>
+                <goal id="fill_cups"       ds="filling workshop pours product into the cups"/>
+                <goal id="pot_items"       ds="robot arm moves pots to the packaging line"/>
+                <goal id="package_pots"    ds="packaging workshop wraps the finished pots"/>
+            </plan>
+        </goal>
+
+        <mission id="m_supply"  min="1" max="2"> <goal id="supply_material"/> </mission>
+        <mission id="m_convey"  min="1" max="1"> <goal id="convey_cups"/>     </mission>
+        <mission id="m_fill"    min="1" max="1"> <goal id="fill_cups"/>       </mission>
+        <mission id="m_pot"     min="1" max="1"> <goal id="pot_items"/>       </mission>
+        <mission id="m_package" min="1" max="1"> <goal id="package_pots"/>    </mission>
+    </scheme>
+</functional-specification>
+
+<normative-specification>
+    <!-- each stage role is obliged to commit to the matching stage mission -->
+    <norm id="n_supply"  type="obligation" role="supplier" mission="m_supply"/>
+    <norm id="n_convey"  type="obligation" role="conveyor" mission="m_convey"/>
+    <norm id="n_fill"    type="obligation" role="filler"   mission="m_fill"/>
+    <norm id="n_pot"     type="obligation" role="potter"   mission="m_pot"/>
+    <norm id="n_package" type="obligation" role="packager" mission="m_package"/>
+</normative-specification>
+
+</organisational-specification>

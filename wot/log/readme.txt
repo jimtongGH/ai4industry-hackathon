@@ -1,0 +1,1 @@
+Console logs are also be stored in this folder, one for each MAS run.
